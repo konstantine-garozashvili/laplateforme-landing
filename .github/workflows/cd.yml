@@ -44,10 +44,12 @@ jobs:
           chmod 600 ~/.kube/config
 
       - name: Publish the build into a ConfigMap
+        # delete + create, NOT apply: `kubectl apply` embeds the whole object in
+        # a last-applied-configuration annotation, and annotations cap at 256KB —
+        # a JS bundle inside the ConfigMap would exceed that limit.
         run: |
-          kubectl create configmap landing-static \
-            --from-file=dist/ \
-            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl delete configmap landing-static --ignore-not-found
+          kubectl create configmap landing-static --from-file=dist/
 
       - name: Apply manifests and roll out
         run: |
