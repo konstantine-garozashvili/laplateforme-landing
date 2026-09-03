@@ -1,0 +1,66 @@
+name: CD
+
+# Deploys to the school Kubernetes cluster (vcluster etudiant-06) on every
+# push to main. The site is static: the build output is pushed into a
+# ConfigMap and the nginx deployment is restarted. No registry needed.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-etudiant-06
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build the static site
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.36.0"
+
+      - name: Configure cluster credentials
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Publish the build into a ConfigMap
+        run: |
+          kubectl create configmap landing-static \
+            --from-file=dist/ \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply manifests and roll out
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout restart deployment/web
+          kubectl rollout status deployment/web --timeout=120s
+
+      - name: Smoke check the live site
+        run: |
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://etudiant-06-web.development.atelier.ovh/ || true)
+            echo "attempt $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "Site did not return 200 in time" && exit 1

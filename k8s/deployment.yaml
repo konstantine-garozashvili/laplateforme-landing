@@ -1,0 +1,41 @@
+# The static site is served by nginx-unprivileged from a ConfigMap volume.
+# The CD pipeline refreshes the ConfigMap from the Vite build output and
+# restarts this deployment — no container registry needed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        # Name matches what `kubectl create deployment web --image=nginxinc/...`
+        # generated, so future `kubectl apply` merges into the same container.
+        - name: nginx-unprivileged
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: static
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: static
+          configMap:
+            name: landing-static
