@@ -113,6 +113,18 @@ export default function Home() {
               {t.hero.ctaSecondary}
             </a>
           </div>
+          {/* Live trust badges — served by shields.io from real npm/CI data */}
+          <div data-testid="trust-badges" className="mt-8 flex flex-wrap items-center justify-center gap-2">
+            <a href={NPM_URL} target="_blank" rel="noreferrer">
+              <img src="https://img.shields.io/npm/v/laplateforme-starter" alt="npm version" className="h-5" />
+            </a>
+            <a href={`${GITHUB_URL}/actions/workflows/ci.yml`} target="_blank" rel="noreferrer">
+              <img src={`${GITHUB_URL}/actions/workflows/ci.yml/badge.svg`} alt="CI status" className="h-5" />
+            </a>
+            <a href={`${GITHUB_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer">
+              <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license" className="h-5" />
+            </a>
+          </div>
         </div>
       </section>
 

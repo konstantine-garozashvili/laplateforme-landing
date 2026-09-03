@@ -1,5 +1,9 @@
 # laplateforme-landing
 
+[![CI](https://github.com/konstantine-garozashvili/laplateforme-landing/actions/workflows/ci.yml/badge.svg)](https://github.com/konstantine-garozashvili/laplateforme-landing/actions/workflows/ci.yml)
+[![CD](https://github.com/konstantine-garozashvili/laplateforme-landing/actions/workflows/cd.yml/badge.svg)](https://github.com/konstantine-garozashvili/laplateforme-landing/actions/workflows/cd.yml)
+[![Live](https://img.shields.io/badge/live-etudiant--06--web.development.atelier.ovh-326CE5)](https://etudiant-06-web.development.atelier.ovh)
+
 Landing page for [`laplateforme-starter`](https://github.com/konstantine-garozashvili/ci-cd-kube) —
 the npx scaffolder for production-ready Node.js projects.
 

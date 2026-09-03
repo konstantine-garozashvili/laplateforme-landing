@@ -24,6 +24,17 @@ test.describe('landing page', () => {
     await expect(page.getByTestId('copy-button')).toContainText('✓')
   })
 
+  test('trust badges link to npm and CI', async ({ page }) => {
+    await page.goto('/')
+    const badges = page.getByTestId('trust-badges')
+    await expect(badges.getByRole('img', { name: 'npm version' })).toBeVisible()
+    await expect(badges.getByRole('img', { name: 'CI status' })).toBeVisible()
+    await expect(badges.getByRole('link').first()).toHaveAttribute(
+      'href',
+      'https://www.npmjs.com/package/laplateforme-starter'
+    )
+  })
+
   test('credits mention the author and the school', async ({ page }) => {
     await page.goto('/')
     const footer = page.locator('footer')
