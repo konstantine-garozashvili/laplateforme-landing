@@ -35,6 +35,13 @@ test.describe('landing page', () => {
     )
   })
 
+  test('footer shows build version and commit sha', async ({ page }) => {
+    await page.goto('/')
+    const info = page.getByTestId('build-info')
+    await expect(info).toBeVisible()
+    await expect(info).toContainText(/v\d+\.\d+\.\d+ · [a-z0-9]{7}|v\d+\.\d+\.\d+ · dev/)
+  })
+
   test('credits mention the author and the school', async ({ page }) => {
     await page.goto('/')
     const footer = page.locator('footer')

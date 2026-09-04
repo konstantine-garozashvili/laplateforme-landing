@@ -243,6 +243,19 @@ export default function Home() {
             <span className="text-blue-200">{t.credits.license}</span>
           </div>
           <p className="mt-8 text-xs text-blue-200">{t.footer}</p>
+          {/* Traceability: the live page states exactly which build it is.
+              The SHA links to the commit that produced this deployment. */}
+          <p data-testid="build-info" className="mt-2 font-mono text-xs text-blue-300">
+            v{__APP_VERSION__} ·{' '}
+            <a
+              href={`${GITHUB_URL.replace('/ci-cd-kube', '/laplateforme-landing')}/commit/${__COMMIT_SHA__}`}
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-blue-400 underline-offset-2 hover:text-white"
+            >
+              {__COMMIT_SHA__}
+            </a>
+          </p>
         </div>
       </footer>
     </div>

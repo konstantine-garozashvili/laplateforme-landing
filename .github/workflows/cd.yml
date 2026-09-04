@@ -27,6 +27,10 @@ jobs:
           cache: npm
 
       - name: Build the static site
+        # The commit SHA is baked into the page footer, so the live site always
+        # states exactly which commit it is running.
+        env:
+          VITE_COMMIT_SHA: ${{ github.sha }}
         run: |
           npm ci
           npm test
@@ -57,7 +61,14 @@ jobs:
           kubectl rollout restart deployment/web
           kubectl rollout status deployment/web --timeout=120s
 
+      - name: Record the deployment in rollout history
+        # kubectl rollout history will now show WHICH commit each revision ran —
+        # traceability inside the cluster itself, and the key to fast rollbacks.
+        run: |
+          kubectl annotate deployment web kubernetes.io/change-cause="deploy ${{ github.sha }} — v$(node -p "require('./package.json').version")" --overwrite
+
       - name: Smoke check the live site
+        id: smoke
         run: |
           for i in $(seq 1 12); do
             code=$(curl -s -o /dev/null -w "%{http_code}" https://etudiant-06-web.development.atelier.ovh/ || true)
@@ -66,3 +77,20 @@ jobs:
             sleep 10
           done
           echo "Site did not return 200 in time" && exit 1
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          {
+            echo "## 🚀 Deployment report"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| **Version** | \`v${VERSION}\` |"
+            echo "| **Commit** | [\`${GITHUB_SHA:0:7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) |"
+            echo "| **Message** | ${{ github.event.head_commit.message || 'manual dispatch' }} |"
+            echo "| **Live URL** | https://etudiant-06-web.development.atelier.ovh |"
+            echo "| **Result** | ${{ job.status }} |"
+            echo "| **Time (UTC)** | $(date -u '+%Y-%m-%d %H:%M:%S') |"
+          } >> "$GITHUB_STEP_SUMMARY"
